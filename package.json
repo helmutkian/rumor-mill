@@ -1,0 +1,24 @@
+{
+  "name": "gossip",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gossip.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/helmutkian/rumor-mill.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/helmutkian/rumor-mill/issues"
+  },
+  "homepage": "https://github.com/helmutkian/rumor-mill#readme",
+  "dependencies": {
+    "d3": "^3.5.17",
+    "express": "^4.13.4"
+  }
+}

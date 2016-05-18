@@ -27,7 +27,6 @@ io.on('connect', function (socket) {
 	    index = Math.floor(Math.random() * nodes.length);
 	    if (index != id && peers.indexOf(index) < 0) {
 		peers.push(index);
-		console.log(index + ' : ' + nodes.length);
 	    }
 	}
 

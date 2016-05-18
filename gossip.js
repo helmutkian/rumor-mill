@@ -19,11 +19,26 @@ function gossip(dispatcher) {
 	};
 
 	Object.defineProperties(node, {
-	    id: { get: () => id },
-	    peers: { get: () => Object.keys(peers).filter(peer => peers[peer]) },
-	    state: { get: () => state },
-	    sampleSize: { get: () => sampleSize, set: value => sampleSize = value },
-	    interval: { get: () => interval, set: value => interval = value }
+	    id: { 
+		enumerable: true,
+		get: () => id 
+	    },
+	    peers: { 
+		enumerable: true,
+		get: () => Object.keys(peers).filter(peer => peers[peer]) 
+	    },
+	    state: { 
+		enumerable: true,
+		get: () => state 
+	    },
+	    sampleSize: { 
+		get: () => sampleSize, 
+		set: value => sampleSize = value 
+	    },
+	    interval: { 
+		get: () => interval, 
+		set: value => interval = value 
+	    }
 	});
 
 	dispatcher.on(id + '.heartbeat', peer => peers[peer] = true);

@@ -15,9 +15,8 @@ var links = [];
 var force = d3.layout.force()
 	.nodes(nodes)
 	.links(links)
-	.charge(-500)
+	.charge(-600)
 	.linkDistance(300)
-	.gravity(0.3)
 	.size([width, height])
 	.on('tick', tick);
 
@@ -93,7 +92,7 @@ dispatcher.on('nodeCreated', debounce(node => {
 	    .style('fill', d => d.state.color ? color(d.state.color.value) : 'black');
 
 	d3.select('.link-' + node.id + '-' + payload.sender)
-	    .transition().duration(500)
+	    .transition().duration(200)
 	    .style('stroke', d => d.source.state.color ? color(d.source.state.color.value) : 'black')
 	    .style('stroke-width', 5)
 	    .each('end', function () {

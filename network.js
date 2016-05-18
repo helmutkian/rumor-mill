@@ -74,7 +74,7 @@ svg.on('click', () => {
     dispatcher.emit('createNode');
 });
 
-dispatcher.on('nodeCreated', queue(node => {
+dispatcher.on('nodeCreated', debounce(node => {
     var peers = node.peers;
 
     nodes.push(node);
@@ -86,7 +86,7 @@ dispatcher.on('nodeCreated', queue(node => {
 	});
     });
 
-    dispatcher.on(node.id + '.push', queue(payload => {
+    dispatcher.on(node.id + '.push', debounce(payload => {
 	node.state = payload.state; 
 
 	d3.select('.node-' + node.id)
@@ -104,7 +104,7 @@ dispatcher.on('nodeCreated', queue(node => {
 	    });
     }));
 
-    dispatcher.on(node.id + '.set', queue(payload => {
+    dispatcher.on(node.id + '.set', debounce(payload => {
 	node.state[payload.key] = {
 	    value: payload.value
 	};
@@ -125,8 +125,13 @@ dispatcher.on('nodeCreated', queue(node => {
     update();
 }));
 
-function queue(cb) {
+var lastCalled = null;
+function debounce(cb) {
+    var now = new Date();
+    var diff = now - (lastCalled || 0);
+
     return function () {
-	setTimeout(() => cb.apply(null, arguments), 200);
+	setTimeout(() => cb.apply(null, arguments), Math.max(200 - diff, 0));
+	lastCalled = now;
     }; 
 }

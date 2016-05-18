@@ -17228,9 +17228,14 @@ dispatcher.on('nodeCreated', queue(node => {
     update();
 }));
 
+var lastCalled = null;
 function queue(cb) {
+    var now = new Date();
+    var diff = now - (lastCalled || 0);
+
     return function () {
-	setTimeout(() => cb.apply(null, arguments), 200);
+	setTimeout(() => cb.apply(null, arguments), Math.max(200 - diff, 0));
+	lastCalled = now;
     }; 
 }
 

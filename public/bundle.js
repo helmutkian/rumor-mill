@@ -17120,7 +17120,7 @@ var force = d3.layout.force()
 	.links(links)
 	.charge(-700)
 	.linkDistance(250)
-	.gravity(0.1)
+	.gravity(0.3)
 	.size([width, height])
 	.on('tick', tick);
 
@@ -17150,7 +17150,7 @@ function update() {
 
     link.enter()
 	.append('line')
-	.attr('class', d => 'link link-' + d.source + '-' + d.target)
+	.attr('class', d => 'link link-' + (d.source.id || d.source) + '-' + (d.target.id || d.target))
 	.style('stroke', 'grey')
 	.style('stroke-width', 1)
 	.style('opacity', 0.3);
@@ -17177,7 +17177,7 @@ svg.on('click', () => {
     dispatcher.emit('createNode');
 });
 
-dispatcher.on('nodeCreated', node => {
+dispatcher.on('nodeCreated', queue(node => {
     var peers = node.peers;
 
     nodes.push(node);
@@ -17189,14 +17189,14 @@ dispatcher.on('nodeCreated', node => {
 	});
     });
 
-    dispatcher.on(node.id + '.push', payload => {
+    dispatcher.on(node.id + '.push', queue(payload => {
 	node.state = payload.state; 
 
 	d3.select('.node-' + node.id)
 	    .style('fill', d => d.state.color ? color(d.state.color.value) : 'black');
 
 	d3.select('.link-' + node.id + '-' + payload.sender)
-	    .transition().duration(200)
+	    .transition().duration(500)
 	    .style('stroke', d => d.source.state.color ? color(d.source.state.color.value) : 'black')
 	    .style('stroke-width', 5)
 	    .each('end', function () {
@@ -17205,15 +17205,15 @@ dispatcher.on('nodeCreated', node => {
 		    .style('stroke', 'grey')
 		    .style('stroke-width', 1);
 	    });
-    });
+    }));
 
-    dispatcher.on(node.id + '.set', payload => {
+    dispatcher.on(node.id + '.set', queue(payload => {
 	node.state[payload.key] = {
 	    value: payload.value
 	};
 
 	d3.select('.node-' + node.id)
-	    .transition().duration(500)
+	    .transition().duration(200)
 	    .style('stroke', d => d.state.color ? color(d.state.color.value) : 'black')
 	    .style('stroke-width', 20)
 	    .style('stroke-opacity', 0.7)
@@ -17223,10 +17223,15 @@ dispatcher.on('nodeCreated', node => {
 		    .style('stroke-width', 0)
 		    .style('stroke-opacity', 0);
 	    });
-    });
+    }));
 
     update();
-});
+}));
 
+function queue(cb) {
+    return function () {
+	setTimeout(() => cb.apply(null, arguments), 200);
+    }; 
+}
 
 },{"d3":3,"events":2,"socket.io-client":4}]},{},[51]);

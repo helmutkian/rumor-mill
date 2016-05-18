@@ -19,7 +19,7 @@ io.on('connect', function (socket) {
     socket.on('createNode', () => {
 	var id = nodes.length;
 	var node = gossip.createNode(id);
-	var numPeers = Math.floor((Math.random() * (Math.ceil(nodes.length * 0.75) - 1)) + 1);
+	var numPeers = Math.floor((Math.random() * (Math.ceil(nodes.length / 2) - 1)) + 1);
 	var peers = [];
 	var index;
 	

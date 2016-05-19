@@ -27,7 +27,6 @@ io.on('connect', function (socket) {
 	    index = Math.floor(Math.random() * nodes.length);
 	    if (index != id && peers.indexOf(index) < 0) {
 		peers.push(index);
-		console.log(index + ' : ' + nodes.length);
 	    }
 	}
 
@@ -63,7 +62,16 @@ io.on('connect', function (socket) {
 
     socket.on('disconnect', () => {
 	clearInterval(intervalId);
-	nodes.forEach(node => node.stop());
+	nodes.forEach(node => {
+	    node.stop();
+	    ['.push', '.heartbeat', '.set']
+		.map(eventType => node.id + eventType)
+		.reduce((acc, event) => acc.concat(
+		    dispatcher.listeners(event)
+			.map(listener => ({ event: event, listener: listener }))
+		), [])
+		.forEach(eventListener => dispatcher.removeListener(eventListener.event, eventListener.listener));
+	});
 	nodes = [];
     });
 

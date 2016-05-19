@@ -28,7 +28,31 @@ var svg = d3.select('#content')
 var node = svg.selectAll('.node');
 var link = svg.selectAll('.link');
 
-update();
+var cooling = d3.scale.sqrt()
+	.domain([0, 100])
+	.range([0.1, 0.00001]);
+
+var intervalId = null;
+
+dispatcher.on('connect', () => {
+    update();
+    
+    intervalId = setInterval(() => {
+	if (nodes.length > 35) {
+	    clearInterval(intervalId);
+	} else {
+	    dispatcher.emit('createNode');
+	}
+    }, 1000);
+});
+
+svg.on('click', () => {
+    if (intervalId) {
+	clearInterval(intervalId);
+    }
+    dispatcher.emit('createNode');
+});
+
 
 function update() {
     node = node.data(force.nodes(), d => d.id);
@@ -54,7 +78,7 @@ function update() {
     link.exit()
 	.remove();
 
-    force.start();
+    force.alpha(cooling(nodes.length)).start();
 };
 
 function tick() {
@@ -68,10 +92,6 @@ function tick() {
 	.attr('x2', d => d.target.x)
 	.attr('y2', d => d.target.y);
 }
-
-svg.on('click', () => {
-    dispatcher.emit('createNode');
-});
 
 dispatcher.on('nodeCreated', debounce(node => {
     var peers = node.peers;

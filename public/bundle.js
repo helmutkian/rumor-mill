@@ -29,7 +29,9 @@ var svg = d3.select('#content')
 var node = svg.selectAll('.node');
 var link = svg.selectAll('.link');
 
-update();
+var cooling = d3.scale.linear()
+	.domain([0, 120])
+	.range([0.1, 0.00001]);
 
 function update() {
     node = node.data(force.nodes(), d => d.id);
@@ -55,7 +57,7 @@ function update() {
     link.exit()
 	.remove();
 
-    force.start();
+    force.alpha(cooling(nodes.length)).start();
 };
 
 function tick() {
@@ -72,6 +74,18 @@ function tick() {
 
 svg.on('click', () => {
     dispatcher.emit('createNode');
+});
+
+dispatcher.on('connect', () => {
+    update();
+    
+    var intervalId = setInterval(debounce(() => {
+	if (nodes.length < 75) {
+	    dispatcher.emit('createNode');
+	} else {
+	    clearInterval(intervalId);
+	}
+    }), 2000);
 });
 
 dispatcher.on('nodeCreated', debounce(node => {

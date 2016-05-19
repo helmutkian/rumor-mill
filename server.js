@@ -14,10 +14,31 @@ app.get('/', (req, res) => {
 
 io.on('connect', function (socket) {
     var nodes = [];
-    
+    var stopSimulation = startSimulation();
 
     socket.on('createNode', () => {
-	var id = nodes.length;
+	var node = createNode(nodes.length);
+	nodes.push(node);
+	node.start();
+    });
+    
+    socket.on('disconnect', () => {
+	stopSimulation();
+
+	nodes.forEach(node => {
+	    node.stop();
+	    ['.push', '.heartbeat', '.set']
+		.map(eventType => node.id + eventType)
+		.reduce((acc, event) => acc.concat(
+		    dispatcher.listeners(event)
+			.map(listener => ({ event: event, listener: listener }))
+		), [])
+		.forEach(eventListener => dispatcher.removeListener(eventListener.event, eventListener.listener));
+	});
+	nodes = [];
+    });
+
+    function createNode(id) {
 	var node = gossip.createNode(id);
 	var numPeers = Math.floor((Math.random() * (Math.ceil(nodes.length / 2) - 1)) + 1);
 	var peers = [];
@@ -26,9 +47,19 @@ io.on('connect', function (socket) {
 	while (peers.length < numPeers) {
 	    index = Math.floor(Math.random() * nodes.length);
 	    if (index != id && peers.indexOf(index) < 0) {
+
 		peers.push(index);
 	    }
 	}
+
+	peers.forEach(peer => {
+	    gossip.connectNodes(node.id, nodes[peer].id);
+	    gossip.connectNodes(nodes[peer].id, node.id);
+	});
+
+	queue(() => {
+	    socket.emit('nodeCreated', node);
+	});
 
 	dispatcher.on(node.id + '.push', payload => {
 	    queue(() => {
@@ -45,52 +76,29 @@ io.on('connect', function (socket) {
 	    });
 	});
 
-	nodes.push(node);
 
-	peers.forEach(peer => {
-	    gossip.connectNodes(node.id, nodes[peer].id);
-	    gossip.connectNodes(nodes[peer].id, node.id);
-	});
+	return node;
+    }
 
-	queue(() => {
-	    socket.emit('nodeCreated', node);
-	});
-
-	node.start();
-    });
-
-
-    socket.on('disconnect', () => {
-	clearInterval(intervalId);
-	nodes.forEach(node => {
-	    node.stop();
-	    ['.push', '.heartbeat', '.set']
-		.map(eventType => node.id + eventType)
-		.reduce((acc, event) => acc.concat(
-		    dispatcher.listeners(event)
-			.map(listener => ({ event: event, listener: listener }))
-		), [])
-		.forEach(eventListener => dispatcher.removeListener(eventListener.event, eventListener.listener));
-	});
-	nodes = [];
-    });
-
-    var iteration = 0;
-
-    var intervalId = setInterval(() => {
-	var index = Math.floor(Math.random() * nodes.length);
-
-	if (nodes.length) {
+    function startSimulation() {
+	var iteration = 0;
 	
-	    gossip.setState(nodes[index].id, { key: 'color', value: iteration });
+	var intervalId = setInterval(() => {
+	    var index = Math.floor(Math.random() * nodes.length);
 	    
-	    if (iteration >= 10) {
-		iteration = 0;
-	    } else {
-		iteration++;
+	    if (nodes.length) {
+		gossip.setState(nodes[index].id, { key: 'color', value: iteration });
+		
+		if (iteration >= 10) {
+		    iteration = 0;
+		} else {
+		    iteration++;
+		}
 	    }
-	}
-    }, Math.floor((Math.random() * (2000 - 200)) + 200));
+	}, Math.floor((Math.random() * (2000 - 200)) + 200));
+
+	return () => clearInterval(intervalId);
+    }
 });
 
 function queue(cb) {

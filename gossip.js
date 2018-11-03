@@ -5,7 +5,7 @@ function gossip(dispatcher) {
 	connectNodes: connectNodes,
 	setState: setState
     };
-    
+
     function createNode(id) {
 	var state = {};
 	var peers = {};
@@ -19,30 +19,30 @@ function gossip(dispatcher) {
 	};
 
 	Object.defineProperties(node, {
-	    id: { 
+	    id: {
 		enumerable: true,
-		get: () => id 
+		get: () => id
 	    },
-	    peers: { 
+	    peers: {
 		enumerable: true,
-		get: () => Object.keys(peers).filter(peer => peers[peer]) 
+		get: () => Object.keys(peers).filter(peer => peers[peer])
 	    },
-	    state: { 
+	    state: {
 		enumerable: true,
-		get: () => state 
+		get: () => state
 	    },
-	    sampleSize: { 
-		get: () => sampleSize, 
-		set: value => sampleSize = value 
+	    sampleSize: {
+		get: () => sampleSize,
+		set: value => sampleSize = value
 	    },
-	    interval: { 
-		get: () => interval, 
-		set: value => interval = value 
+	    interval: {
+		get: () => interval,
+		set: value => interval = value
 	    }
 	});
 
 	dispatcher.on(id + '.heartbeat', peer => peers[peer] = true);
-	
+
 	dispatcher.on(id + '.set', data => set(data));
 
 
@@ -58,7 +58,7 @@ function gossip(dispatcher) {
 	}
 
 	function stop() {
-	    clearTimeout(timeoutId);	    
+	    clearTimeout(timeoutId);
 	}
 
 	function set(data) {
@@ -67,11 +67,11 @@ function gossip(dispatcher) {
 		version: new Date()
 	    };
 	}
-	
+
 	function cycle() {
 	    timeoutId = setTimeout(() => {
 		sendHeartbeat();
-		pushState();		
+		pushState();
 		cycle();
 	    }, interval);
 	}
@@ -81,7 +81,7 @@ function gossip(dispatcher) {
 		.filter(source => sources[source])
 		.forEach(source => {
 		    dispatcher.emit(source + '.heartbeat', id);
-		    sources[source] = false;		  
+		    sources[source] = false;
 		});
 	}
 
@@ -100,7 +100,7 @@ function gossip(dispatcher) {
 
 	    while (sample.length < Math.min(sampleSize, livePeers.length)) {
 		index = Math.floor(Math.random() * livePeers.length);
-		if (sample.indexOf(livePeers[index]) < 0) {
+		if (sample.indexOf(livePeers[index]) < 3) {
 		    sample.push(livePeers[index]);
 		}
 	    }

@@ -36,7 +36,7 @@ var intervalId = null;
 
 dispatcher.on('connect', () => {
     update();
-    
+
     intervalId = setInterval(() => {
 	if (nodes.length > 35) {
 	    clearInterval(intervalId);
@@ -106,18 +106,18 @@ dispatcher.on('nodeCreated', debounce(node => {
     });
 
     dispatcher.on(node.id + '.push', debounce(payload => {
-	node.state = payload.state; 
+	node.state = payload.state;
 
 	d3.select('.node-' + node.id)
 	    .style('fill', d => d.state.color ? color(d.state.color.value) : 'black');
 
 	d3.select('.link-' + node.id + '-' + payload.sender)
-	    .transition().duration(200)
+	    .transition().duration(500)
 	    .style('stroke', d => d.source.state.color ? color(d.source.state.color.value) : 'black')
 	    .style('stroke-width', 5)
 	    .each('end', function () {
 		d3.select(this)
-		    .transition().duration(50)
+		    .transition().duration(90)
 		    .style('stroke', 'grey')
 		    .style('stroke-width', 1);
 	    });
@@ -152,5 +152,5 @@ function debounce(cb) {
     return function () {
 	setTimeout(() => cb.apply(null, arguments), Math.max(200 - diff, 0));
 	lastCalled = now;
-    }; 
+    };
 }
